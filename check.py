@@ -25,8 +25,25 @@ def sha256(filepath: Path) -> str:
 def download_pdf() -> Path:
     dest = DATA_DIR / "new.pdf"
     print(f"Downloading CED PDF from {CED_URL} ...")
+    req = urllib.request.Request(
+        CED_URL,
+        headers={
+            "User-Agent": (
+                "Mozilla/5.0 (X11; Linux x86_64) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/124.0.0.0 Safari/537.36"
+            ),
+            "Accept": "application/pdf,*/*",
+            "Accept-Language": "en-US,en;q=0.9",
+            "Referer": "https://apcentral.collegeboard.org/",
+        },
+    )
     try:
-        urllib.request.urlretrieve(CED_URL, dest)
+        with urllib.request.urlopen(req) as response, open(dest, "wb") as f:
+            f.write(response.read())
+    except urllib.error.HTTPError as e:
+        print(f"ERROR: HTTP {e.code} downloading PDF: {e.reason}", file=sys.stderr)
+        sys.exit(1)
     except urllib.error.URLError as e:
         print(f"ERROR: Failed to download PDF: {e}", file=sys.stderr)
         sys.exit(1)
