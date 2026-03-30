@@ -1,0 +1,60 @@
+name: Check CED for Changes
+
+on:
+  schedule:
+    - cron: "0 17 * * *"   # daily at 17:00 UTC (1:00 AM Beijing)
+  workflow_dispatch:        # manual trigger via GitHub UI
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write       # needed to push commits back to the repo
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install system dependencies
+        run: sudo apt-get install -y poppler-utils
+
+      - name: Install Python dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run CED check script
+        id: check
+        run: python check.py
+
+      - name: Commit and push changes
+        run: |
+          git config user.name "CED Monitor Bot"
+          git config user.email "bot@ced-monitor.github.io"
+          git add data/ diffs/
+          git diff --staged --quiet || git commit -m "CED updated: $(date -u +%Y-%m-%d)"
+          git push
+
+      - name: Send email notification
+        if: steps.check.outputs.changed == 'true'
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{ secrets.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: "🚨 AP Cybersecurity CED has changed!"
+          to: barryshen777@gmail.com
+          from: CED Monitor <${{ secrets.EMAIL_USERNAME }}>
+          body: |
+            The AP Cybersecurity Course and Exam Description (CED) PDF has changed!
+
+            View the visual diff images:
+            https://github.com/${{ github.repository }}/tree/main/diffs
+
+            View the full commit history:
+            https://github.com/${{ github.repository }}/commits/main
