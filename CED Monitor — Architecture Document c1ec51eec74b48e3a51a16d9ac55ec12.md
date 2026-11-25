@@ -145,12 +145,12 @@ pdf-diff before.pdf after.pdf > output.png
 
 **Required GitHub Secrets** (repo Settings → Secrets → Actions):
 
-- `EMAIL_USERNAME` — Gmail address (e.g., `barryshen777@gmail.com`)
+- `EMAIL_USERNAME` — Gmail address (e.g., `you@gmail.com`)
 - `EMAIL_PASSWORD` — Gmail App Password (16-char, generated from Google Account → Security → App Passwords)
 
 **Email content:**
 
-- **To:** `barryshen777@gmail.com`
+- **To:** the address in `EMAIL_USERNAME`
 - **Subject:** `🚨 AP Cybersecurity CED has changed!`
 - **Body:** Notification text + link to `diffs/` folder in the repo + link to commit history
 - **From name:** `CED Monitor`
